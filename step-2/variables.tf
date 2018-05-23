@@ -17,8 +17,12 @@ variable "instance_type" {
 }
 
 variable "instance_ami" {
-  type        = "string"
-  default     = "ami-bfff49c2"
+  type = "string"
+
+  #default     = "ami-bfff49c2"
+  #default     = "ami-969c2deb" #try1
+  default = "ami-f58b3a88" #centos
+
   description = "EC2 ami"
 }
 

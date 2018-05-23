@@ -54,18 +54,16 @@ resource "aws_subnet" "public" {
   # TODO: Remplir l'attribut vpc_id avec l'attribut 'id' de la ressource 'network' de type 'aws_vpc'
   #
 
-
+  vpc_id = "${aws_vpc.network.id}"
   #
   # Utilisation de l'index de count pour attribuer une AZ différente à chacun des subnets créé.
   #
   availability_zone = "${data.aws_availability_zones.all.names[count.index]}"
-
   cidr_block                      = "${cidrsubnet(var.vpc_cidr, 4, count.index)}"
   ipv6_cidr_block                 = "${cidrsubnet(aws_vpc.network.ipv6_cidr_block, 8, count.index)}"
   map_public_ip_on_launch         = true
   assign_ipv6_address_on_creation = true
-
-  tags = "${map("Name", "${var.project_name}-public-${count.index}")}"
+  tags                            = "${map("Name", "${var.project_name}-public-${count.index}")}"
 }
 
 resource "aws_route_table_association" "public" {

@@ -3,6 +3,11 @@
 # Hints:
 #   https://www.terraform.io/docs/providers/aws/d/vpc.html
 #
+variable "vpc_id" {}
+
+data "aws_vpc" "devoxx_vpc" {
+  id = "${var.vpc_id}"
+}
 
 data "aws_subnet_ids" "devoxx_subnets" {
   vpc_id = "${data.aws_vpc.devoxx_vpc.id}"
