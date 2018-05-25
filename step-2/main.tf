@@ -64,8 +64,12 @@ resource "aws_instance" "my_instance" {
 
   instance_type          = "${var.instance_type}"
   vpc_security_group_ids = ["${aws_security_group.allow_all.id}"]
-  subnet_id              = "subnet-0f35091ec04ddf776"
-  key_name               = "${aws_key_pair.keypair.key_name}"
+
+  #subnet_id              = "subnet-0f35091ec04ddf776"
+  #subnet_id = "${data.aws_vpc.devoxx_vpc.id}" #Donne le bon vpc mais pas le subnet id
+  subnet_id = "${element(data.aws_subnet_ids.devoxx_subnets.ids,0)}" # fonctionne mais sans utiliser devoxx_subnet_details
+
+  key_name = "${aws_key_pair.keypair.key_name}"
 
   tags {
     Name    = "${var.name}"
