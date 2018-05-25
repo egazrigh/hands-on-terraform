@@ -7,7 +7,7 @@
 #
 
 resource "aws_lb" "first" {
-  subnets         = ["${data.aws_subnet_ids.devoxx_subnets.*.id}"]
+  subnets         = ["${data.aws_subnet_ids.devoxx_subnets.ids}"]
   security_groups = ["${data.terraform_remote_state.step2.security_group_id}"]
 }
 
@@ -50,6 +50,31 @@ resource "aws_lb_listener" "front_end" {
 #  EOF
 #
 
+resource "aws_instance" "my_instance2" {
+  #ami = "${var.instance_ami}"
+  ami                    = "${data.aws_ami.latest_centos_ami.id}"
+  instance_type          = "${var.instance_type}"
+  vpc_security_group_ids = ["${data.terraform_remote_state.step2.security_group_id}"]
+  subnet_id              = "${element(data.aws_subnet.devoxx_subnet_details.*.id,0)}" # enfin !
+
+  #key_name = "${aws_key_pair.keypair.key_name}"
+
+  tags {
+    Name    = "${var.name}"
+    Env     = "Test"
+    Billing = "Someone Else"
+  }
+  user_data = <<EOF
+  #cloud-config
+  runcmd:
+    - yum install -y httpd
+    - echo "Instance " >> /var/www/html/index.html 
+    - curl http://169.254.169.254/latest/meta-data/instance-id >> /var/www/html/index.html
+    - echo " created by Terraform" >> /var/www/html/index.html 
+    - systemctl start httpd
+    - systemctl enable httpd
+  EOF
+}
 
 #
 # TODO: Attacher l'instance créée au target_group 'first_tg'
@@ -58,3 +83,8 @@ resource "aws_lb_listener" "front_end" {
 #   https://www.terraform.io/docs/providers/aws/r/lb_target_group_attachment.html
 #
 
+resource "aws_lb_target_group_attachment" "test" {
+  target_group_arn = "${aws_lb_target_group.first_tg.arn}"
+  target_id        = "${aws_instance.my_instance2.id}"
+  port             = 80
+}
