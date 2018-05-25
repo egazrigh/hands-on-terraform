@@ -3,3 +3,10 @@
 # en step-4.
 #
 #
+terraform {
+  backend "s3" {
+    bucket = "eg2-s3bucket-for-hands-on-terraform"
+    key    = "hands-on-terraform/terraform.tfstate"
+    region = "eu-west-3"
+  }
+}

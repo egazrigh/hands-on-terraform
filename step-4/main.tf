@@ -6,3 +6,12 @@
 #   https://www.terraform.io/docs/providers/aws/r/s3_bucket.html
 #
 
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "eg2-s3bucket-for-hands-on-terraform"
+
+  versioning {
+    enabled = true
+  }
+
+  force_destroy = true
+}
