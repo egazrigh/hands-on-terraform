@@ -6,6 +6,11 @@
 #   https://www.terraform.io/docs/providers/aws/r/lb.html
 #
 
+resource "aws_lb" "first" {
+  subnets         = ["${data.aws_subnet_ids.devoxx_subnets.*.id}"]
+  security_groups = ["${data.terraform_remote_state.step2.security_group_id}"]
+}
+
 resource "aws_lb_target_group" "first_tg" {
   name     = "devoxx-tg"
   port     = 80
@@ -45,9 +50,11 @@ resource "aws_lb_listener" "front_end" {
 #  EOF
 #
 
+
 #
 # TODO: Attacher l'instance créée au target_group 'first_tg'
 #
 # Hints:
 #   https://www.terraform.io/docs/providers/aws/r/lb_target_group_attachment.html
 #
+
