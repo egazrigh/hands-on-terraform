@@ -7,7 +7,7 @@
 #
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "eg2-s3bucket-for-hands-on-terraform"
+  bucket = "${var.s3_bucket_name_for_tfstate}"
 
   versioning {
     enabled = true
