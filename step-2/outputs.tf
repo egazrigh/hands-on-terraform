@@ -41,3 +41,6 @@ output "vpc_subnet_list" {
 }
 */
 
+output "devoxx_vpc2" {
+  value = "${data.aws_vpc.devoxx_vpc2.id}"
+}

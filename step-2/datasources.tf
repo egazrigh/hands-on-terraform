@@ -16,6 +16,13 @@ data "aws_vpc" "devoxx_vpc" {
   id = "${data.terraform_remote_state.step1.vpc_id}"
 }
 
+# a simplest way to retreive devoxx vpc created at step 1
+data "aws_vpc" "devoxx_vpc2" {
+  tags = {
+    Name = "devoxx"
+  }
+}
+
 data "aws_subnet_ids" "devoxx_subnets" {
   vpc_id = "${data.aws_vpc.devoxx_vpc.id}"
 }
