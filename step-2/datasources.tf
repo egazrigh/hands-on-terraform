@@ -23,4 +23,6 @@ data "aws_subnet_ids" "devoxx_subnets" {
 data "aws_subnet" "devoxx_subnet_details" {
   count = "${length(data.aws_subnet_ids.devoxx_subnets.ids)}"
   id    = "${data.aws_subnet_ids.devoxx_subnets.ids[count.index]}"
+
+  #element(data.aws_subnet_ids.devoxx_subnets.ids,0
 }

@@ -67,7 +67,8 @@ resource "aws_instance" "my_instance" {
 
   #subnet_id              = "subnet-0f35091ec04ddf776"
   #subnet_id = "${data.aws_vpc.devoxx_vpc.id}" #Donne le bon vpc mais pas le subnet id
-  subnet_id = "${element(data.aws_subnet_ids.devoxx_subnets.ids,0)}" # fonctionne mais sans utiliser devoxx_subnet_details
+  #subnet_id = "${element(data.aws_subnet_ids.devoxx_subnets.ids,0)}" # fonctionne mais sans utiliser devoxx_subnet_details
+  subnet_id = "${element(data.aws_subnet.devoxx_subnet_details.*.id,1)}" # enfin !
 
   key_name = "${aws_key_pair.keypair.key_name}"
 
@@ -81,7 +82,9 @@ resource "aws_instance" "my_instance" {
   #cloud-config
   runcmd:
     - yum install -y httpd
-    - curl http://169.254.169.254/latest/meta-data/instance-id > /var/www/html/index.html
+    - echo "Instance " >> /var/www/html/index.html 
+    - curl http://169.254.169.254/latest/meta-data/instance-id >> /var/www/html/index.html
+    - echo " created by Terraform" >> /var/www/html/index.html 
     - systemctl start httpd
     - systemctl enable httpd
   EOF

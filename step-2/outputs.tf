@@ -30,3 +30,7 @@ output "security_group_id" {
 output "keypair_name" {
   value = "${aws_key_pair.keypair.key_name}"
 }
+
+output "vpc_subnet_list" {
+  value = "${data.aws_subnet.devoxx_subnet_details.*.id}"
+}
