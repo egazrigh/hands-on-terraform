@@ -31,6 +31,13 @@ output "keypair_name" {
   value = "${aws_key_pair.keypair.key_name}"
 }
 
+output "latest_centos_ami" {
+  value = "${data.aws_ami.latest_centos_ami.id}"
+}
+
+/* DEBUGGING
 output "vpc_subnet_list" {
   value = "${data.aws_subnet.devoxx_subnet_details.*.id}"
 }
+*/
+

@@ -60,8 +60,8 @@ resource "aws_security_group_rule" "allow_out" {
 #
 
 resource "aws_instance" "my_instance" {
-  ami = "${var.instance_ami}"
-
+  #ami = "${var.instance_ami}"
+  ami                    = "${data.aws_ami.latest_centos_ami.id}"
   instance_type          = "${var.instance_type}"
   vpc_security_group_ids = ["${aws_security_group.allow_all.id}"]
 

@@ -23,7 +23,7 @@ variable "instance_ami" {
   #default     = "ami-969c2deb" #try1
   default = "ami-f58b3a88" #centos
 
-  description = "EC2 ami"
+  description = "Cent OS EC2 ami"
 }
 
 variable "public_key_path" {
