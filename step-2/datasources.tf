@@ -3,10 +3,17 @@
 # Hints:
 #   https://www.terraform.io/docs/providers/aws/d/vpc.html
 #
-variable "vpc_id" {}
+
+data "terraform_remote_state" "step1" {
+  backend = "local"
+
+  config {
+    path = "${path.module}/../step-1/terraform.tfstate"
+  }
+}
 
 data "aws_vpc" "devoxx_vpc" {
-  id = "${var.vpc_id}"
+  id = "${data.terraform_remote_state.step1.vpc_id}"
 }
 
 data "aws_subnet_ids" "devoxx_subnets" {
