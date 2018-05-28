@@ -18,3 +18,8 @@ variable "public_key_path" {
   type        = "string"
   description = "Public Key for SSH connexion"
 }
+
+variable "vpc_cidr" {
+  type        = "string"
+  description = "VPC CIDR for the project"
+}

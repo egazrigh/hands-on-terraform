@@ -1,6 +1,8 @@
 data "aws_vpc" "devoxx_vpc" {
   depends_on = ["module.network"]
-  cidr_block = "10.10.0.0/16"
+
+  #cidr_block = "10.10.0.0/16"
+  cidr_block = "${var.vpc_cidr}"
 }
 
 data "aws_subnet_ids" "devoxx_subnets" {
@@ -9,6 +11,7 @@ data "aws_subnet_ids" "devoxx_subnets" {
 
 /*
 data "aws_subnet" "devoxx_subnet_details" {
+  #arche pas avec module meme avec un depends on
   count      = "${length(data.aws_subnet_ids.devoxx_subnets.ids)}"
   id         = "${data.aws_subnet_ids.devoxx_subnets.ids[count.index]}"
 }

@@ -1,6 +1,6 @@
 module "network" {
   source       = "../step-1-module"
-  vpc_cidr     = "10.10.0.0/16"
+  vpc_cidr     = "${var.vpc_cidr}"
   project_name = "${var.name}"
 }
 
@@ -120,26 +120,16 @@ resource "aws_launch_configuration" "devoxx-launch-config" {
     user_data = <<EOF
     #cloud-config
     runcmd:
-      - yum install -y httpd
-      - curl http://169.254.169.254/latest/meta-data/instance-id > /var/www/html/index.html
-      - systemctl start httpd
-      - systemctl enable httpd
+    - yum install -y httpd
+    - echo "Project ${var.name} " >> /var/www/html/index.html 
+    - echo "Instance " >> /var/www/html/index.html 
+    - curl http://169.254.169.254/latest/meta-data/instance-id >> /var/www/html/index.html
+    - echo " created by Terraform" >> /var/www/html/index.html 
+    - systemctl start httpd
+    - systemctl enable httpd
     EOF
-  */
-
-  user_data = <<EOF
-#cloud-config
-runcmd:
-- yum install -y httpd
-- echo "Project ${var.name} " >> /var/www/html/index.html 
-- echo "Instance " >> /var/www/html/index.html 
-- curl http://169.254.169.254/latest/meta-data/instance-id >> /var/www/html/index.html
-- echo " created by Terraform" >> /var/www/html/index.html 
-- systemctl start httpd
-- systemctl enable httpd
-EOF
-
-  # user_data = "${data.template_file.user_data.rendered}"
+    */
+  user_data = "${data.template_file.user_data.rendered}"
 
   lifecycle {
     create_before_destroy = true
@@ -166,10 +156,10 @@ resource "aws_autoscaling_group" "devoxx-asg" {
   target_group_arns = ["${aws_lb_target_group.apache.arn}"]
 
   /*
-            vpc_zone_identifier = [
-              "${data.aws_subnet.devoxx_subnet_details.*.id}",
-            ]
-          */
+                    vpc_zone_identifier = [
+                      "${data.aws_subnet.devoxx_subnet_details.*.id}",
+                    ]
+                  */
   vpc_zone_identifier = [
     "${element(data.aws_subnet_ids.devoxx_subnets.ids,0)}",
   ]
