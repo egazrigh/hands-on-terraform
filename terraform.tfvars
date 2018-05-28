@@ -1,6 +1,6 @@
 s3_bucket_name_for_tfstate = "eg2-s3bucket-for-hands-on-terraform"
 
-name = "devoxx"
+name = "newprojectname"
 
 instance_type = "t2.micro"
 

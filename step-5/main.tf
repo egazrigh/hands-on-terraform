@@ -6,7 +6,7 @@
 # Vous pouvez au choix: les copier ou vous y raccorder via des requêtes datasources.
 #
 resource "aws_key_pair" "keypair" {
-  key_name   = "devoxx-keypair"
+  key_name   = "${var.name}-keypair"
   public_key = "${file(var.public_key_path)}"
 }
 
@@ -41,7 +41,7 @@ resource "aws_security_group_rule" "allow_all_out" {
 }
 
 resource "aws_lb" "apache" {
-  name     = "devoxx-lb"
+  name     = "${var.name}-lb"
   internal = false
 
   security_groups = [
@@ -58,7 +58,7 @@ resource "aws_lb" "apache" {
 #
 
 resource "aws_lb_target_group" "apache" {
-  name     = "devoxx-tg"
+  name     = "${var.name}-tg"
   port     = 80
   protocol = "HTTP"
   vpc_id   = "${data.aws_vpc.devoxx_vpc.id}"
@@ -109,14 +109,30 @@ resource "aws_launch_configuration" "devoxx-launch-config" {
   image_id        = "${data.aws_ami.latest_centos_ami.id}" #Centos
   security_groups = ["${aws_security_group.allow_all.id}"]
 
+  /*
+    user_data = <<EOF
+    #cloud-config
+    runcmd:
+      - yum install -y httpd
+      - curl http://169.254.169.254/latest/meta-data/instance-id > /var/www/html/index.html
+      - systemctl start httpd
+      - systemctl enable httpd
+    EOF
+  */
+
   user_data = <<EOF
-  #cloud-config
-  runcmd:
-    - yum install -y httpd
-    - curl http://169.254.169.254/latest/meta-data/instance-id > /var/www/html/index.html
-    - systemctl start httpd
-    - systemctl enable httpd
-  EOF
+#cloud-config
+runcmd:
+- yum install -y httpd
+- echo "Project ${var.name} " >> /var/www/html/index.html 
+- echo "Instance " >> /var/www/html/index.html 
+- curl http://169.254.169.254/latest/meta-data/instance-id >> /var/www/html/index.html
+- echo " created by Terraform" >> /var/www/html/index.html 
+- systemctl start httpd
+- systemctl enable httpd
+EOF
+
+  # user_data = "${data.template_file.user_data.rendered}"
 
   lifecycle {
     create_before_destroy = true

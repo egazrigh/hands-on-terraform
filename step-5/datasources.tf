@@ -19,3 +19,11 @@ data "aws_ami" "latest_centos_ami" {
     values = ["*CentOS Linux 7 x86_64 HVM EBS*"]
   }
 }
+
+data "template_file" "user_data" {
+  template = "${file("${path.module}/user-data.sh")}"
+
+  vars {
+    name = "${var.name}"
+  }
+}
