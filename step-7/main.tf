@@ -16,34 +16,67 @@ resource "aws_key_pair" "keypair" {
   public_key = "${file(var.public_key_path)}"
 }
 
-resource "aws_security_group" "allow_all" {
-  name        = "allow_all"
-  description = "Allow all inbound traffic"
+resource "aws_security_group" "instances" {
+  name        = "${var.name}-instances"
+  description = "Allow inbound traffic on instances"
+  vpc_id      = "${data.aws_vpc.devoxx_vpc.id}"
+
+  /*
+                tags = {
+                  Name = "${var.name}"
+                }
+                */
+  tags = "${map("Name", "${var.name}-instances")}"
+}
+
+resource "aws_security_group_rule" "allow_instances_in" {
+  type        = "ingress"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+
+  security_group_id = "${aws_security_group.instances.id}"
+}
+
+resource "aws_security_group_rule" "allow_instances_out" {
+  type        = "egress"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+
+  security_group_id = "${aws_security_group.instances.id}"
+}
+
+resource "aws_security_group" "lb" {
+  name        = "${var.name}-lb"
+  description = "Allow inbound traffic onto Load Balancer"
   vpc_id      = "${data.aws_vpc.devoxx_vpc.id}"
 
   tags = {
-    Name = "${var.name}"
+    Name = "${var.name}-lb"
   }
 }
 
-resource "aws_security_group_rule" "allow_all_in" {
+resource "aws_security_group_rule" "allow_80_in" {
   type        = "ingress"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
 
-  security_group_id = "${aws_security_group.allow_all.id}"
+  security_group_id = "${aws_security_group.lb.id}"
 }
 
-resource "aws_security_group_rule" "allow_all_out" {
+resource "aws_security_group_rule" "allow_80_out" {
   type        = "egress"
-  from_port   = 0
-  to_port     = 0
-  protocol    = "-1"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
 
-  security_group_id = "${aws_security_group.allow_all.id}"
+  security_group_id = "${aws_security_group.lb.id}"
 }
 
 resource "aws_lb" "apache" {
@@ -51,11 +84,15 @@ resource "aws_lb" "apache" {
   internal = false
 
   security_groups = [
-    "${aws_security_group.allow_all.id}",
+    "${aws_security_group.lb.id}",
   ]
 
   #subnets = ["${data.aws_subnet.devoxx_subnet_details.*.id}"]
   subnets = ["${data.aws_subnet_ids.devoxx_subnets.ids}"]
+
+  tags = {
+    Name = "${var.name}"
+  }
 }
 
 #
@@ -76,6 +113,10 @@ resource "aws_lb_target_group" "apache" {
     healthy_threshold   = 3
     unhealthy_threshold = 3
     interval            = 10
+  }
+
+  tags = {
+    Name = "${var.name}"
   }
 }
 
@@ -110,25 +151,14 @@ resource "aws_lb_listener" "front_end" {
 #
 
 resource "aws_launch_configuration" "devoxx-launch-config" {
-  name            = "${var.name}-lc"
-  instance_type   = "${var.instance_type}"
-  key_name        = "${aws_key_pair.keypair.key_name}"
-  image_id        = "${data.aws_ami.latest_centos_ami.id}" #Centos
-  security_groups = ["${aws_security_group.allow_all.id}"]
+  name          = "${var.name}-lc"
+  instance_type = "${var.instance_type}"
+  key_name      = "${aws_key_pair.keypair.key_name}"
+  image_id      = "${data.aws_ami.latest_centos_ami.id}" #Centos
 
-  /*
-    user_data = <<EOF
-    #cloud-config
-    runcmd:
-    - yum install -y httpd
-    - echo "Project ${var.name} " >> /var/www/html/index.html 
-    - echo "Instance " >> /var/www/html/index.html 
-    - curl http://169.254.169.254/latest/meta-data/instance-id >> /var/www/html/index.html
-    - echo " created by Terraform" >> /var/www/html/index.html 
-    - systemctl start httpd
-    - systemctl enable httpd
-    EOF
-    */
+  #security_groups = ["${aws_security_group.allow_all.id}"]
+  security_groups = ["${aws_security_group.instances.id}"]
+
   user_data = "${data.template_file.user_data.rendered}"
 
   lifecycle {
@@ -156,17 +186,24 @@ resource "aws_autoscaling_group" "devoxx-asg" {
   target_group_arns = ["${aws_lb_target_group.apache.arn}"]
 
   /*
-                    vpc_zone_identifier = [
-                      "${data.aws_subnet.devoxx_subnet_details.*.id}",
-                    ]
-                  */
+            vpc_zone_identifier = [
+              "${data.aws_subnet.devoxx_subnet_details.*.id}",
+            ]
+          */
   vpc_zone_identifier = [
     "${element(data.aws_subnet_ids.devoxx_subnets.ids,0)}",
   ]
 
-  tags {
-    key                 = "Name"
-    value               = "${var.name}-asg"
-    propagate_at_launch = true
-  }
+  tag = [
+    {
+      key                 = "Name"
+      value               = "${var.name}-asg"
+      propagate_at_launch = true
+    },
+    {
+      "key"                 = "Env"
+      "value"               = "Test"
+      "propagate_at_launch" = true
+    },
+  ]
 }
