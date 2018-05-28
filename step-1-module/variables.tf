@@ -13,6 +13,5 @@ variable "project_name" {
 # Hints: https://www.terraform.io/docs/configuration/variables.html
 #
 variable "vpc_cidr" {
-  type    = "string"
-  default = "10.10.0.0/16"
+  type = "string"
 }
